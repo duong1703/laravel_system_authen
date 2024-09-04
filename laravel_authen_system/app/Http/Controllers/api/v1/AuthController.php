@@ -10,6 +10,7 @@ use Laravel\Passport\HasApiTokens;
 use Hash;
 use Str;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -61,60 +62,83 @@ class AuthController extends Controller
     public function login(Request $request)
     {
 
+        
         $request->validate([
             'userEmail' => 'required|string|email',
-            'userPassword' => 'required|string|',
+            'userPassword' => 'required|string',
         ]);
 
+       
         $user = \App\Models\api\v1\user::where('userEmail', $request->userEmail)->first();
 
-        if (!empty($user)) {
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid userEmail value',
+            ], 401);
+        }
 
-            if (Hash::check($request->userPassword, $user->userPassword)) {
-                $tokenString = Str::random(255);
+      
+        if (!Hash::check($request->userPassword, $user->userPassword)) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid userPassword value',
+            ], 401);
+        }
 
-                $tokens = new token([
-                    'userId' => $user->id,
-                    'type' => '',
-                    'token' => Hash::make($tokenString),
-                ]);
+       
+        $tokenString = Str::random(255); 
+        $token = token::create([
+            'userId' => $user->id,
+            'type' => '',
+            'token' => $tokenString, 
+        ]);
 
-                $tokens->save();
+        $token->save();
 
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Login successful!',
-                    'token' => $tokenString,
-                ]);
+      
+        return response()->json([
+            'status' => true,
+            'message' => 'Login successful!',
+            'token' => $tokenString,
+        ]);
 
-            } else {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid userPassword value ',
-                ]);
-            }
+    }
+
+    public function profile(Request $request)
+    {
+        
+        $tokenString = $request->bearerToken();
+
+       
+        $token = token::where('token', $tokenString)->first();
+
+        if (!$token) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Invalid token',
+            ], 401);
+        }
+
+      
+        $user = \App\Models\api\v1\user::find($token->userId);
+
+        if ($user) {
+            return response()->json([
+                'status' => true,
+                'user' => $user,
+            ]);
         } else {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid userEmail value ',
-            ]);
+                'message' => 'User not found',
+            ], 404);
         }
 
     }
 
-    public function profile()
-    {
-        $DataUser = auth()->user();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Profile Infomation',
-            'data' => $DataUser,
-        ]);
-    }
-
     public function logout()
     {
-        
     }
+
 }

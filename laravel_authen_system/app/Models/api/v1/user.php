@@ -10,7 +10,7 @@ use Laravel\Passport\HasApiTokens;
 
 class user extends Authenticatable
 {
-    use  HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = "user";
 
@@ -35,6 +35,11 @@ class user extends Authenticatable
     public function group()
     {
         return $this->belongsToMany(group::class, 'group_user', 'userId', 'groupId')
-                    ->withTimestamps();
+            ->withTimestamps();
+    }
+
+    public function tokens()
+    {
+        return $this->hasMany(token::class, 'userId');
     }
 }

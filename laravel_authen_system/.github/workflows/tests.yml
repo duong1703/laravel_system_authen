@@ -23,6 +23,18 @@ jobs:
 
     name: PHP ${{ matrix.php }}
 
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: laravel_library_manage
+          MYSQL_USER: root
+          MYSQL_PASSWORD: 
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping --silent" --health-interval=10s
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,7 +43,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, pdo_mysql
           coverage: none
 
       - name: Install Composer dependencies
@@ -42,6 +54,18 @@ jobs:
 
       - name: Generate app key
         run: php artisan key:generate
+
+      - name: Configure database
+        run: |
+          echo "DB_CONNECTION=mysql" >> .env
+          echo "DB_HOST=127.0.0.1" >> .env
+          echo "DB_PORT=3306" >> .env
+          echo "DB_DATABASE= laravel_library_manage" >> .env
+          echo "DB_USERNAME=root" >> .env
+          echo "DB_PASSWORD=" >> .env
+
+      - name: Run migrations
+        run: php artisan migrate
 
       - name: Execute tests
         run: vendor/bin/phpunit
