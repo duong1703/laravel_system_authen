@@ -36,13 +36,8 @@ return [
     */
 
     'guards' => [
-        // 'web' => [
-        //     'driver' => 'session',
-        //     'provider' => 'users',
-        // ],
-
         'api' => [
-            'driver' => 'passport',
+            'driver' => 'passport', // Hoặc 'sanctum', tùy bạn đang dùng gì
             'provider' => 'users',
         ],
     ],

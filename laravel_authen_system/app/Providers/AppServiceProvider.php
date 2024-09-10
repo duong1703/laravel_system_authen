@@ -16,16 +16,13 @@ class AppServiceProvider extends ServiceProvider
     
     }
 
-    protected $policies = [
-        // Các policies của bạn
-    ];
-
-
     /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
         $this->registerPolicies();
+
+        
     }
 }

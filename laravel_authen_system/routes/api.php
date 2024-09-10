@@ -6,9 +6,9 @@ use App\Http\Controllers\api\v1\AuthController;
 use App\Providers\AppServiceProvider;
 use Laravel\Passport\Passport;
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:api')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
 
 //Open Route
@@ -17,9 +17,9 @@ Route::post('login', [AuthController::class, 'login'])->name('Api_login');
 
 
 //Protected Route
-Route::middleware(['check.token', 'auth:api'])->group(function () {
+Route::middleware(['checkApiToken'])->group(function () {
     Route::get('profile', [AuthController::class, 'profile'])->name('Api_profile');
-    Route::get('logout', [AuthController::class, 'logout'])->name('Api_logout');
+    Route::post('logout', [AuthController::class, 'logout'])->name('Api_logout');
 });
 
 

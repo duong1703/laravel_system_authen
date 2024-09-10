@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\api\v1\token;
 use Auth;
+use DB;
 use Laravel\Passport\HasApiTokens;
 use Hash;
 use Str;
@@ -62,83 +63,83 @@ class AuthController extends Controller
     public function login(Request $request)
     {
 
-        
         $request->validate([
             'userEmail' => 'required|string|email',
             'userPassword' => 'required|string',
         ]);
 
-       
-        $user = \App\Models\api\v1\user::where('userEmail', $request->userEmail)->first();
 
-        if (!$user) {
+        $user = \App\Models\api\v1\User::where('userEmail', $request->userEmail)->first();
+
+        if (!$user || !Hash::check($request->userPassword, $user->userPassword)) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid userEmail value',
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
-      
-        if (!Hash::check($request->userPassword, $user->userPassword)) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Invalid userPassword value',
-            ], 401);
-        }
 
-       
-        $tokenString = Str::random(255); 
-        $token = token::create([
+        $tokenString = Str::random(60);
+
+
+        $token = Token::create([
             'userId' => $user->id,
-            'type' => '',
-            'token' => $tokenString, 
+            'token' => $tokenString,
+            'type' => 'access',
         ]);
 
-        $token->save();
-
-      
+        // Trả về token
         return response()->json([
             'status' => true,
             'message' => 'Login successful!',
             'token' => $tokenString,
         ]);
-
     }
 
     public function profile(Request $request)
     {
-        
-        $tokenString = $request->bearerToken();
+        $user = $request->get('user');
 
-       
-        $token = token::where('token', $tokenString)->first();
-
-        if (!$token) {
+        if (!$user) {
             return response()->json([
                 'status' => false,
-                'message' => 'Invalid token',
+                'message' => 'User Unauthorize!',
             ], 401);
         }
 
-      
-        $user = \App\Models\api\v1\user::find($token->userId);
-
-        if ($user) {
-            return response()->json([
-                'status' => true,
-                'user' => $user,
-            ]);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found',
-            ], 404);
-        }
-
+        // Trả về thông tin người dùng
+        return response()->json([
+            'status' => true,
+            'user' => $user,
+        ]);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
+        $tokenString = $request->bearerToken();
+
+        if (!$tokenString) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Token not register!',
+            ], 400);
+        }
+
+        $token = DB::table('token')->where('token', $tokenString)->first();
+
+        if ($token) {
+            DB::table('token')->where('token', $tokenString)->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Logout Successfully!',
+            ]);
+        }
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid Token!',
+        ], 400);
     }
 
 }
