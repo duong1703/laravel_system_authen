@@ -28,7 +28,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: laravel_library_manage
+          MYSQL_DATABASE: laravel_system_authen
           MYSQL_USER: root
           MYSQL_PASSWORD: 
         ports:
@@ -60,7 +60,7 @@ jobs:
           echo "DB_CONNECTION=mysql" >> .env
           echo "DB_HOST=127.0.0.1" >> .env
           echo "DB_PORT=3306" >> .env
-          echo "DB_DATABASE= laravel_library_manage" >> .env
+          echo "DB_DATABASE= laravel_system_authen" >> .env
           echo "DB_USERNAME=root" >> .env
           echo "DB_PASSWORD=" >> .env
 
